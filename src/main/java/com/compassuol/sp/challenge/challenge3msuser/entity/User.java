@@ -1,4 +1,4 @@
-package com.compassuol.sp.challenge.challenge3msuser.domain;
+package com.compassuol.sp.challenge.challenge3msuser.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -7,6 +7,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.validator.constraints.br.CPF;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -22,30 +25,24 @@ public class User {
     private Long id;
 
     @Column(name = "firstName" ,nullable = false)
-    @Size(min = 3)
     private String firstName;
 
     @Column(name = "lastName" ,nullable = false)
-    @Size(min = 3)
     private String lastName;
 
     @Column(nullable = false, unique = true)
-    @CPF
     private String cpf;
 
     @Column(name = "birthdate",nullable = false)
-    @JsonFormat(pattern = "dd/MM/yyyy")
     private String birthdate;
 
     @Column(nullable = false, unique = true)
-    @Email
     private String email;
 
     @Column(nullable = false)
     private String cep;
 
     @Column(name = "password", nullable = false)
-    @Size(min = 6)
     private String password;
 
     @Column(name = "active")
