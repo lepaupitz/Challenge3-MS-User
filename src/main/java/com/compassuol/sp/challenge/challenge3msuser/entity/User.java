@@ -3,13 +3,11 @@ package com.compassuol.sp.challenge.challenge3msuser.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.validator.constraints.br.CPF;
-import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import java.util.Optional;
+import java.io.Serializable;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -18,7 +16,7 @@ import java.util.Optional;
 @AllArgsConstructor
 @EqualsAndHashCode
 @Table(name = "Users")
-public class User {
+public class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,7 +32,7 @@ public class User {
     private String cpf;
 
     @Column(name = "birthdate",nullable = false)
-    private String birthdate;
+    private Date birthdate;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -47,5 +45,16 @@ public class User {
 
     @Column(name = "active")
     private boolean active;
+
+    @Column(name = "role", nullable = false, length = 25)
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.ROLE_USER;
+
+    @Getter
+    public enum Role {
+        ROLE_USER, ROLE_ADMIN
+    }
+
+
 
 }

@@ -1,25 +1,44 @@
 package com.compassuol.sp.challenge.challenge3msuser.service;
 
 import com.compassuol.sp.challenge.challenge3msuser.entity.User;
-import com.compassuol.sp.challenge.challenge3msuser.entity.UserRepository;
+import com.compassuol.sp.challenge.challenge3msuser.repository.UserRepository;
+import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserCreateDto;
 import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserUpdateDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
 
-    public User createUser(User user) {
-        validateAndEncryptPassword(user);
-        return userRepository.save(user);
+    private final UserRepository userRepository;
+
+    private final PasswordEncoder passwordEncoder;
+
+
+
+    public User createUser(UserCreateDto userCreateDto) {
+
+        User CreatedUser = new User();
+        CreatedUser.setFirstName(userCreateDto.getFirstName());
+        CreatedUser.setLastName(userCreateDto.getLastName());
+        CreatedUser.setCpf(userCreateDto.getCpf());
+        CreatedUser.setBirthdate(userCreateDto.getBirthdate());
+        CreatedUser.setEmail(userCreateDto.getEmail());
+        CreatedUser.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
+        CreatedUser.setActive(userCreateDto.getActive());
+
+
+        CreatedUser.setCep(userCreateDto.getCep());
+
+        return userRepository.save(CreatedUser);
+
     }
 
     public Optional<User> getUserById(Long id) {
@@ -49,14 +68,15 @@ public class UserService {
 
     }
 
-    public void validateAndEncryptPassword(User user) {
-        if (user.getPassword() != null && user.getPassword().length() > 6) {
-            String encryptedPassword = passwordEncoder.encode(user.getPassword());
-            user.setPassword(encryptedPassword);
-        }
-        else {
-            throw new IllegalArgumentException("Password must be at least 6 characters long");
-        }
+    @Transactional
+    public User buscarPorUsername(String username) {
+        return userRepository.findByEmail(username).orElseThrow(
+                () -> new EntityNotFoundException(String.format("Usuario com '%s' não encontrado", username))
+        );
     }
 
+    @Transactional
+    public User.Role buscarRolePorUsername(String username) {
+        return userRepository.findByEmail(username).orElseThrow().getRole();
+    }
 }

@@ -12,6 +12,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.br.CPF;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.util.Date;
 
 @Getter
 @Setter
@@ -29,8 +32,9 @@ public class UserCreateDto {
     @CPF
     private String cpf;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @JsonFormat(pattern = "dd/MM/yyyy")
-    private String birthdate;
+    private Date birthdate;
 
     @Email(message = "formato do e-mail está invalido", regexp = "^[a-z0-9.+-]+@[a-z0-9.-]+\\.[a-z]{2,}$")
     private String email;
@@ -40,5 +44,5 @@ public class UserCreateDto {
     @Size(min = 6)
     private String password;
 
-    private boolean active;
+    private Boolean active;
 }
