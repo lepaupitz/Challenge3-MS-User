@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -47,6 +49,7 @@ public class UserService {
         UserNotificationSend userNotificationSend = new UserNotificationSend();
         userNotificationSend.setEmail(userCreateDto.getEmail());
         userNotificationSend.setEvent(NotificationMessage.CREATE);
+        userNotificationSend.setSendDate(new Date());
 
         try {
             notificationQueue.sendUserCreateQueue(userNotificationSend);
@@ -58,6 +61,7 @@ public class UserService {
     }
 
     public Optional<User> getUserById(Long id) {
+
         return userRepository.findById(id);
     }
 
@@ -72,6 +76,16 @@ public class UserService {
         updatedUser.setBirthdate(userUpdateDto.getBirthdate());
         updatedUser.setActive(userUpdateDto.isActive());
 
+        UserNotificationSend userNotificationSend = new UserNotificationSend();
+        userNotificationSend.setEmail(userUpdateDto.getEmail());
+        userNotificationSend.setEvent(NotificationMessage.UPDATE);
+        userNotificationSend.setSendDate(new Date());
+        try {
+            notificationQueue.sendUserCreateQueue(userNotificationSend);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         return userRepository.save(updatedUser);
     }
 
@@ -80,6 +94,16 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         user.setPassword(passwordEncoder.encode(newPassword));
+
+        UserNotificationSend userNotificationSend = new UserNotificationSend();
+        userNotificationSend.setEmail(user.getEmail());
+        userNotificationSend.setEvent(NotificationMessage.UPDATE_PASSWORD);
+        userNotificationSend.setSendDate(new Date());
+        try {
+            notificationQueue.sendUserCreateQueue(userNotificationSend);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         userRepository.save(user);
 
     }

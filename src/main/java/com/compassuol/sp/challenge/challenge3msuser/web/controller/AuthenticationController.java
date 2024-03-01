@@ -1,11 +1,14 @@
 package com.compassuol.sp.challenge.challenge3msuser.web.controller;
 
+import com.compassuol.sp.challenge.challenge3msuser.entity.NotificationMessage;
+import com.compassuol.sp.challenge.challenge3msuser.entity.UserNotificationSend;
 import com.compassuol.sp.challenge.challenge3msuser.repository.UserRepository;
 import com.compassuol.sp.challenge.challenge3msuser.exception.ExceptionErrorMessage;
 import com.compassuol.sp.challenge.challenge3msuser.jwt.JwtToken;
 import com.compassuol.sp.challenge.challenge3msuser.jwt.JwtUserDetailsService;
 import com.compassuol.sp.challenge.challenge3msuser.service.UserService;
 import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserLoginDto;
+import com.compassuol.sp.challenge.challenge3msuser.web.mqueue.NotificationQueue;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Date;
 
 
 @Slf4j
@@ -31,8 +35,8 @@ public class AuthenticationController {
 
     private final JwtUserDetailsService detailsService;
     private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final UserService userService;
+    private final NotificationQueue notificationQueue;
+
 
     @PostMapping("/login")
     public ResponseEntity<?> autenticar(@RequestBody @Valid UserLoginDto dto, HttpServletRequest request) {
@@ -46,6 +50,16 @@ public class AuthenticationController {
             if (authenticate.isAuthenticated()) {
 
                 JwtToken token = detailsService.getTokenAuthenticated(dto.getEmail());
+
+                UserNotificationSend userNotificationSend = new UserNotificationSend();
+                userNotificationSend.setEmail(dto.getEmail());
+                userNotificationSend.setEvent(NotificationMessage.LOGIN);
+                userNotificationSend.setSendDate(new Date());
+                try {
+                    notificationQueue.sendUserCreateQueue(userNotificationSend);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 return ResponseEntity.ok(token);
             } else {
                 return null;
