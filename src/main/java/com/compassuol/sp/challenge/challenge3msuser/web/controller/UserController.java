@@ -2,6 +2,7 @@ package com.compassuol.sp.challenge.challenge3msuser.web.controller;
 
 import com.compassuol.sp.challenge.challenge3msuser.entity.User;
 import com.compassuol.sp.challenge.challenge3msuser.service.UserService;
+import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserAddressDto;
 import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserCreateDto;
 import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserResponseDto;
 import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserUpdateDto;
@@ -24,10 +25,13 @@ public class UserController {
     private UserService userService;
     private final ModelMapper modelMapper;
 
+
+
     @PostMapping
     public ResponseEntity<UserResponseDto> createUser(@RequestBody @Valid UserCreateDto userCreateDto) {
 
         User user = userService.createUser(userCreateDto);
+        UserAddressDto userAddressDto = userService.getUserAddress(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(user, UserResponseDto.class));
     }
 

@@ -1,9 +1,14 @@
 package com.compassuol.sp.challenge.challenge3msuser.service;
 
+import com.compassuol.sp.challenge.challenge3msuser.entity.NotificationMessage;
 import com.compassuol.sp.challenge.challenge3msuser.entity.User;
+import com.compassuol.sp.challenge.challenge3msuser.entity.UserNotificationSend;
 import com.compassuol.sp.challenge.challenge3msuser.repository.UserRepository;
+import com.compassuol.sp.challenge.challenge3msuser.web.Client.AddressClient;
+import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserAddressDto;
 import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserCreateDto;
 import com.compassuol.sp.challenge.challenge3msuser.web.dto.UserUpdateDto;
+import com.compassuol.sp.challenge.challenge3msuser.web.mqueue.NotificationQueue;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +27,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
 
+    private final AddressClient addresClient;
+
+    private final NotificationQueue notificationQueue;
 
     public User createUser(UserCreateDto userCreateDto) {
 
@@ -33,12 +41,20 @@ public class UserService {
         CreatedUser.setEmail(userCreateDto.getEmail());
         CreatedUser.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
         CreatedUser.setActive(userCreateDto.getActive());
-
-
         CreatedUser.setCep(userCreateDto.getCep());
+        userRepository.save(CreatedUser);
 
-        return userRepository.save(CreatedUser);
+        UserNotificationSend userNotificationSend = new UserNotificationSend();
+        userNotificationSend.setEmail(userCreateDto.getEmail());
+        userNotificationSend.setEvent(NotificationMessage.CREATE);
 
+        try {
+            notificationQueue.sendUserCreateQueue(userNotificationSend);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return CreatedUser;
     }
 
     public Optional<User> getUserById(Long id) {
@@ -78,5 +94,10 @@ public class UserService {
     @Transactional
     public User.Role buscarRolePorUsername(String username) {
         return userRepository.findByEmail(username).orElseThrow().getRole();
+    }
+
+    public UserAddressDto getUserAddress(User user) {
+       UserAddressDto userAddressDto = addresClient.saveAddress(new UserAddressDto(user.getCep(), user.getId()));
+       return userAddressDto;
     }
 }

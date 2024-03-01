@@ -35,7 +35,7 @@ import javax.sound.midi.Receiver;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    static final String queueName = "spring-boot";
+    static final String queueName = "user";
     @Bean
     public ConnectionFactory connectionFactory() {
         return new CachingConnectionFactory("localhost");
@@ -55,9 +55,5 @@ public class SecurityConfig {
     public Queue myQueue() {
         return new Queue("user");
     }
-
-
-
-
 
 }
